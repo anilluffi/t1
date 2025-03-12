@@ -21,7 +21,7 @@ export class JwtAuthGuard implements CanActivate {
       request.user = decoded;
       return true;
     } catch (error) {
-      console.error("Ошибка валидации токена:", error.message);
+      console.error("Token validation error: ", error.message);
       throw new UnauthorizedException('Invalid token');
     }
   }

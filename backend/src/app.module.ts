@@ -4,9 +4,10 @@ import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
 import { MailService } from './mail/mail.service';
-
+import { ConfigModule } from '@nestjs/config';
 @Module({
   imports: [
+    ConfigModule.forRoot({ isGlobal: true }),
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: 'localhost',
@@ -21,5 +22,6 @@ import { MailService } from './mail/mail.service';
   ],
   controllers: [AppController],
   providers: [MailService], 
+  
 })
 export class AppModule {}

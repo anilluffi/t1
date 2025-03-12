@@ -1,12 +1,12 @@
 import { useState } from "react";
-
+import { useNavigate } from "react-router-dom";
 const RegisterPage = () => {
   const [formData, setFormData] = useState({
     email: "",
     password: "",
     confirmPassword: "",
   });
-
+  const navigate = useNavigate(); 
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
@@ -34,6 +34,7 @@ const RegisterPage = () => {
           email: formData.email,
           password: formData.password,
         }),
+        
       });
 
       const data = await response.json();
@@ -44,6 +45,10 @@ const RegisterPage = () => {
 
       setSuccessMessage("User registered successfully!");
       setFormData({ email: "", password: "", confirmPassword: "" });
+
+
+      setTimeout(() => navigate("/login"), 3000);
+
     } catch (error: any) {
       setError(error.message);
     }

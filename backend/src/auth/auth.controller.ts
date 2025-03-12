@@ -20,10 +20,14 @@ import { ChangePasswordDto } from './dto/change-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { Response } from 'express';
-
+import { JwtService } from '@nestjs/jwt';
 @Controller('api/auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) { }
+  [x: string]: any;
+  constructor(
+    private readonly authService: AuthService,
+    private readonly jwtService: JwtService,
+  ) { }
 
   @Post('login')
   async loginUser(@Body() loginDto: LoginDto) {
@@ -31,34 +35,56 @@ export class AuthController {
   }
 
   /////////////////////////////////////////////////////////
-  @UseGuards(JwtAuthGuard)
+  
   @Post('refresh')
-  async refreshToken(@Req() req) {
-    //log
-    //console.log("Вход в refreshToken контроллер");
-    //console.log("req.user:", req.user);
-    //console.log("req.body:", req.body);
+async refreshToken(@Body() body) {
+  const { refreshToken } = body;
+  //console.log("Принят refreshToken:", refreshToken);
 
-    const refreshToken = req.body.refreshToken;
-    if (!refreshToken) {
-      throw new UnauthorizedException('Missing refresh token');
+  if (!refreshToken) {
+    throw new UnauthorizedException('Missing refresh token');
+  }
+
+  const refreshSecret = process.env.JWT_REFRESH_SECRET;
+  if (!refreshSecret) {
+    console.error('JWT_REFRESH_SECRET не найден в .env');
+    throw new InternalServerErrorException('Server misconfiguration');
+  }
+
+  //console.log('con JWT_REFRESH_SECRET:', refreshSecret);
+
+  try {
+    if (!this.jwtService || typeof this.jwtService.verify !== 'function') {
+      console.error('jwtService не инициализирован');
+      throw new InternalServerErrorException('JWT service is unavailable');
     }
 
-    const userId = req.user?.sub;  //
-    //console.log("Извлечён userId:", userId);//log
+    const payload = this.jwtService.verify(refreshToken, { secret: refreshSecret });
 
+    //console.log("Расшифрован payload:", payload);
+
+    const userId = payload?.sub;
     if (!userId) {
       throw new UnauthorizedException('User ID not found');
     }
 
-    try {
-      const newTokens = await this.authService.refreshToken(userId, refreshToken);
-      return newTokens;
-    } catch (error) {
-      console.error('error:', error);
-      throw new UnauthorizedException('Failed to refresh token');
+    const newTokens = await this.authService.refreshToken(refreshToken);
+    return newTokens;
+  } catch (error) {
+    console.error('Ошибка при обновлении токена:', error.message);
+
+    if (error.name === 'TokenExpiredError') {
+      throw new UnauthorizedException('Refresh token expired');
     }
+
+    if (error.name === 'JsonWebTokenError') {
+      throw new UnauthorizedException('Invalid refresh token');
+    }
+
+    throw new UnauthorizedException('Failed to refresh token');
   }
+}
+
 
 
   /////////////////////////////////////////////////////////

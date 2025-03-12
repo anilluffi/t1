@@ -12,5 +12,11 @@ export class User {
   password: string;
 
   @Column({ nullable: true })
+  confirmed: boolean;
+
+  @Column({ nullable: true })
   refreshToken: string;
+
+  @Column({ type: "text", nullable: true }) 
+  mailToken?: string | null;
 }

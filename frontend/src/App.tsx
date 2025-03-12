@@ -8,11 +8,11 @@ import ChangePasswordPage from "./pages/ChangePasswordPage";
 import "./App.css";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { useState, useEffect } from "react";
-import useTokenRefresh from "./hooks/useTokenRefresh";
+
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  useTokenRefresh();
+  
   useEffect(() => {
     const token = localStorage.getItem("token");
     setIsAuthenticated(!!token);

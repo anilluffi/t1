@@ -5,14 +5,19 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { User } from '../users/user.entity';
 import { MailModule } from '../mail/mail.module';
+import { ConfigModule } from '@nestjs/config';
 @Module({
   imports: [
     TypeOrmModule.forFeature([User]),
     MailModule,
-    JwtModule.register({
-      secret: process.env.JWT_SECRET || '2', 
-      signOptions: { expiresIn: '1h' },
+    ConfigModule.forRoot({
+      isGlobal: true, 
     }),
+    JwtModule.register({
+      secret: process.env.JWT_REFRESH_SECRET,
+      signOptions: { expiresIn: '7d' },
+    }),
+    
   ],
   controllers: [AuthController],
   providers: [AuthService],
