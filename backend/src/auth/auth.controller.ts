@@ -21,6 +21,7 @@ import { ResetPasswordDto } from './dto/reset-password.dto';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { Response } from 'express';
 import { JwtService } from '@nestjs/jwt';
+import { userInfo } from 'os';
 @Controller('api/auth')
 export class AuthController {
   [x: string]: any;
@@ -39,7 +40,7 @@ export class AuthController {
   @Post('refresh')
 async refreshToken(@Body() body) {
   const { refreshToken } = body;
-  //console.log("Принят refreshToken:", refreshToken);
+  //console.log("con refreshToken:", refreshToken);
 
   if (!refreshToken) {
     throw new UnauthorizedException('Missing refresh token');
@@ -61,7 +62,7 @@ async refreshToken(@Body() body) {
 
     const payload = this.jwtService.verify(refreshToken, { secret: refreshSecret });
 
-    //console.log("Расшифрован payload:", payload);
+    //console.log("decod payload:", payload);
 
     const userId = payload?.sub;
     if (!userId) {
@@ -88,6 +89,15 @@ async refreshToken(@Body() body) {
 
 
   /////////////////////////////////////////////////////////
+
+  @Get('profile')
+@UseGuards(JwtAuthGuard)
+async getProfile(@Req() req) {
+    const userId = req.user.sub;
+    return this.authService.getProfile(userId);
+}
+
+
 
 
   @Post('logout')

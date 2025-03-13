@@ -52,7 +52,7 @@ export class AuthService {
       ''
     );
     return { message: 'User registered successfully' };
-  }
+  } 
 
   async login(loginDto: LoginDto) {
     const { email, password } = loginDto;
@@ -91,7 +91,7 @@ export class AuthService {
       const newRefreshToken = this.jwtService.sign(
         { sub: user.id },
         { secret: refreshSecret, expiresIn: '7d' }
-      );
+      ); 
   
       await this.usersRepository.update(user.id, { refreshToken: newRefreshToken });
   
@@ -104,6 +104,23 @@ export class AuthService {
   
   
   ////////////////////////////////////////////////////////////////////////////////////
+  
+  async getProfile(userId: number) {
+  
+    const user = await this.usersRepository.findOne({
+      where: { id: userId },
+    });
+  
+    if (!user) throw new NotFoundException(' Пользователь не найден');
+  
+    //console.log('USER найден:', user);
+    return user; 
+  }
+  
+  
+  
+
+
 
 
 
@@ -175,19 +192,19 @@ export class AuthService {
     }
 
 
-    await this.usersRepository.update(user.id, { mailToken: null });
+    //await this.usersRepository.update(user.id, { mailToken: null });
 
-    const updatedUser = await this.usersRepository.findOne({ where: { id: user.id } });
+    //const updatedUser = await this.usersRepository.findOne({ where: { id: user.id } });
 
-    if (!updatedUser) {
-      throw new Error(`User witch ID ${user.id} not found befor refresh`);
-    }
+    // if (!updatedUser) {
+    //   throw new Error(`User witch ID ${user.id} not found befor refresh`);
+    // }
 
 
-    updatedUser.password = await bcrypt.hash(newPassword, 10);
-
+    user.password = await bcrypt.hash(newPassword, 10);
+    user.mailToken = null;
     try {
-      await this.usersRepository.save(updatedUser);
+      await this.usersRepository.save(user);
     } catch (error) {
       console.error('Error saving user:', error);
     }

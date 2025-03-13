@@ -23,27 +23,19 @@ axiosInstance.interceptors.response.use(
   (response) => response,
   async (error) => {
     if (error.response?.status === 401) {
-      console.warn("Токен истек, обновление");
+      //console.warn("Токен истек, обновление");
 
       try {
         const { refreshToken, setTokens } = useAuthStore.getState();
         if (!refreshToken) throw new Error("Нет refresh-токена");
 
-        console.log("Отправляем refreshToken:", refreshToken);
+        //console.log("Отправляем refreshToken:", refreshToken);
 
         const refreshResponse = await axios.post(
             `${API_URL}/auth/refresh`,
             { refreshToken } 
           );
           
-        /*const refreshResponse = await axios.post(
-            `${API_URL}/auth/refresh`,
-            {},
-            {
-              headers: { Authorization: `Bearer ${refreshToken}` },
-            }
-          );*/
-          ////
 
         if (refreshResponse.data?.access_token) {
           console.log("Токен обновлен");
