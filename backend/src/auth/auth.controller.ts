@@ -22,6 +22,23 @@ import { JwtAuthGuard } from './jwt-auth.guard';
 import { Response } from 'express';
 import { JwtService } from '@nestjs/jwt';
 import { userInfo } from 'os';
+import axios from 'axios';
+
+interface WeatherResponse {
+  main: { temp: number };
+  weather: { description: string }[];
+  name: string;
+}
+interface ForecastResponse {
+  list: {
+    main: { temp: number };
+    weather: { description: string }[];
+    dt_txt: string;
+  }[];
+}
+
+
+
 @Controller('api/auth')
 export class AuthController {
   [x: string]: any;
@@ -29,6 +46,14 @@ export class AuthController {
     private readonly authService: AuthService,
     private readonly jwtService: JwtService,
   ) { }
+
+
+  
+  // @Get(':userId')
+  // async getFavoriteCities(@Param('userId') userId: number) {
+  //   return this.favoriteCitiesService.getFavoriteCities(userId);
+  // }
+
 
   @Post('login')
   async loginUser(@Body() loginDto: LoginDto) {
@@ -94,8 +119,78 @@ async refreshToken(@Body() body) {
 @UseGuards(JwtAuthGuard)
 async getProfile(@Req() req) {
     const userId = req.user.sub;
+    
     return this.authService.getProfile(userId);
 }
+
+@Post('set-avarar')
+@UseGuards(JwtAuthGuard)
+async setAvatar(@Req() req){
+  const userId = req.user.sub;
+  console.log("set Avatar start in back");
+  return this.authService.setAvatar(userId);
+}
+
+
+
+@Post('favorite-city')
+@UseGuards(JwtAuthGuard)
+  async addFavoriteCity(@Req() req, @Body() body: {city: string }) {
+    console.log("userId ", req.user.sub);
+    const userId = req.user.sub;
+    
+    return this.authService.addFavoriteCity(userId, body.city);
+  }
+
+@Get("weather")
+async getWeather(@Query("lat") lat: string, @Query("lon") lon: string) {
+  try {
+    const apiKey = process.env.WEATHER_API_KEY;
+    const weatherUrl = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&appid=${apiKey}`;
+    const forecastUrl = `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&units=metric&appid=${apiKey}`;
+
+    const { data: weatherData } = await axios.get<WeatherResponse>(weatherUrl);
+    const { data: forecastData } = await axios.get<ForecastResponse>(forecastUrl);
+
+    const weekForecast: { date: string; temp: string; description: string }[] = [];
+    const addedDates = new Set();
+
+    const today = new Date().toISOString().split("T")[0]; 
+
+    for (const item of forecastData.list) {
+      const date = item.dt_txt.split(" ")[0];
+
+      if (date !== today && !addedDates.has(date)) {
+        weekForecast.push({
+          date: new Date(item.dt_txt).toLocaleDateString("ru-RU", {
+            weekday: "short",
+            day: "numeric",
+            month: "numeric",
+          }),
+          temp: `${Math.round(item.main.temp)}`,
+          description: item.weather[0].description,
+        });
+
+        addedDates.add(date);
+
+        if (weekForecast.length === 6) break;
+      }
+    }
+
+    return {
+      city: weatherData.name,
+      weatherNow: `${Math.round(weatherData.main.temp)}°C, ${weatherData.weather[0].description}`,
+      weatherAfter3h: `${Math.round(forecastData.list[1].main.temp)}°C, ${forecastData.list[1].weather[0].description}`,
+      weatherAfter6h: `${Math.round(forecastData.list[2].main.temp)}°C, ${forecastData.list[2].weather[0].description}`,
+      weekForecast,
+    };
+  } catch (error) {
+    console.error("Ошибка запроса погоды:", error);
+    return { weatherNow: "Не удалось получить погоду" };
+  }
+}
+
+
 
 
 
@@ -119,6 +214,7 @@ async getProfile(@Req() req) {
       return this.authService.resetPasswordWithToken(token, dto.password);
   }
 
+  
   
 
 

@@ -9,21 +9,30 @@ import { LoginDto } from './dto/login.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { MailService } from '../mail/mail.service';
 import { ConfigService } from '@nestjs/config';
+import {FavoriteCity} from '../favorite-city/favorite-city.entity';
 @Injectable()
 export class AuthService {
   [x: string]: any;
   constructor(
+    @InjectRepository(FavoriteCity)
+  private favoriteCityRepository: Repository<FavoriteCity>,
     @InjectRepository(User)
     private usersRepository: Repository<User>,
+
     private mailService: MailService,
     private readonly jwtService: JwtService,
     private configService: ConfigService,
+    
   ) { }
+
+
+
+  
 
   private async generateTokens(userId: number, email: string) {
     const payload = { sub: userId, email };//////////////////////////
     const access_token = this.jwtService.sign(payload, {
-      expiresIn: '15s',
+      expiresIn: '15m',
       jwtid: `access-token-${userId}-${Date.now()}`
     });
     const refresh_token = this.jwtService.sign(payload, { expiresIn: '7d' });
@@ -85,7 +94,7 @@ export class AuthService {
   
       const newAccessToken = this.jwtService.sign(
         { sub: user.id, email: user.email },
-        { secret: this.configService.get<string>('JWT_SECRET'), expiresIn: '15s' }
+        { secret: this.configService.get<string>('JWT_SECRET'), expiresIn: '15m' }
       );
   
       const newRefreshToken = this.jwtService.sign(
@@ -109,6 +118,7 @@ export class AuthService {
   
     const user = await this.usersRepository.findOne({
       where: { id: userId },
+      relations: ['favoriteCities'],
     });
   
     if (!user) throw new NotFoundException(' Пользователь не найден');
@@ -117,9 +127,14 @@ export class AuthService {
     return user; 
   }
   
-  
-  
 
+ 
+  
+  
+  async setAvatar(userId: number){
+    console.log("set Avatar start in servis");
+    //await this.usersRepository.update(userId, {avatar: pash});
+  }
 
 
 
@@ -169,6 +184,32 @@ export class AuthService {
 
     return { message: 'Password successfully changed' };
   }
+
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+async addFavoriteCity(userId: number, city: string) {
+  const user = await this.usersRepository.findOne({ where: { id: userId } });
+
+  if (!user) {
+    throw new Error('User not found');
+  }
+
+  const newCity = this.favoriteCityRepository.create({
+    user,
+    city_name: city,
+  });
+
+  return this.favoriteCityRepository.save(newCity);
+}
+
+
+  // async getFavoriteCities(userId: number) {
+  //   return this.authService.find({ where: { userId } });
+  // }
+
+
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
 
 
   async resetPasswordWithToken(token: string, newPassword: string) {

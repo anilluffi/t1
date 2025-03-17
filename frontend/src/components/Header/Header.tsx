@@ -20,9 +20,9 @@ export const Header = () => {
     <header className="bg-secondary bg-gradient text-white p-3">
       <div className="container">
         <nav>
-          <a href="/Password" className="p-3 text-light" >
+          {/* <a href="/Password" className="p-3 text-light" >
           <i className="bi bi-key fs-3"></i>
-          </a>
+          </a> */}
 
           <a href="/weather" className="p-3 text-light">
             <i className="bi bi-cloud-sun fs-3"></i>

@@ -23,7 +23,7 @@ const LoginPage = () => {
             });
 
             const data = await response.json();
-            
+
 
             if (!response.ok) {
                 throw new Error(data.message || "Login failed");
@@ -31,7 +31,7 @@ const LoginPage = () => {
 
             setTokens(data.access_token, data.refresh_token);
             setSuccessMessage("Login successful!");
-            
+
             setTimeout(() => {
                 navigate("/home");
                 window.location.reload(); // 
@@ -72,6 +72,9 @@ const LoginPage = () => {
                             required
                         />
                     </div>
+                    <button className="text-white bg-dark bg-gradient mb-5 rounded" >
+                        <a className="text-white link-underline-dark" href="/Password">reset password</a>
+                    </button>
                     <button type="submit" className="btn text-white w-100 bg-dark">Log in</button>
 
                 </form>

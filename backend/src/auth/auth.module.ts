@@ -6,9 +6,10 @@ import { AuthService } from './auth.service';
 import { User } from '../users/user.entity';
 import { MailModule } from '../mail/mail.module';
 import { ConfigModule } from '@nestjs/config';
+import { FavoriteCity } from '../favorite-city/favorite-city.entity';
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User]),
+    TypeOrmModule.forFeature([User, FavoriteCity]),
     MailModule,
     ConfigModule.forRoot({
       isGlobal: true, 

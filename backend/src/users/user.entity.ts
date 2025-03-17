@@ -1,4 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
+import { FavoriteCity } from '../favorite-city/favorite-city.entity';
 
 @Entity('users')
 export class User {
@@ -9,13 +10,10 @@ export class User {
   email: string;
 
   @Column({ nullable: true })
-  name: string; 
+  name: string;
 
   @Column({ nullable: true })
-  avatar: string; 
-
-  @Column({ nullable: true })
-  City: string;
+  avatar: string;
 
   @Column()
   password: string;
@@ -26,6 +24,9 @@ export class User {
   @Column({ nullable: true })
   refreshToken: string;
 
-  @Column({ type: "text", nullable: true }) 
+  @Column({ type: 'text', nullable: true })
   mailToken?: string | null;
-}
+
+  @OneToMany(() => FavoriteCity, (favoriteCity) => favoriteCity.user)
+  favoriteCities: FavoriteCity[];
+} 
