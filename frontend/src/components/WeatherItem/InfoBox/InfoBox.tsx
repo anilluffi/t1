@@ -16,15 +16,12 @@ export const InfoBox: React.FC<InfoBoxProps> = ({
 }) => {
   const [weather, setWeather] = useState<ApiResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    setIsAuthenticated(!!token);
     const fetchWeather = async (latitude: number, longitude: number) => {
       try {
         const response = await axiosInstance.get<ApiResponse>(
-          `auth/weather?lat=${latitude}&lon=${longitude}`
+          `weather/now?lat=${latitude}&lon=${longitude}`
         );
         setWeather(response.data);
       } catch (err) {

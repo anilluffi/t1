@@ -23,7 +23,7 @@ export const WeatherHourly = () => {
     const fetchWeather = async (latitude: number, longitude: number) => {
       try {
         const response = await axiosInstance.get<WeatherData>(
-          `auth/weather?lat=${latitude}&lon=${longitude}`
+          `weather/Hourly?lat=${latitude}&lon=${longitude}`
         );
         setWeather(response.data);
       } catch (err) {

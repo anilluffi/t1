@@ -21,8 +21,6 @@ export const SevenDays = () => {
   const [weather, setWeather] = useState<ApiResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const token = localStorage.getItem("token");
-  const allCities = citiesData[0].regions;
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -31,7 +29,7 @@ export const SevenDays = () => {
     const fetchWeather = async (latitude: number, longitude: number) => {
       try {
         const response = await axiosInstance.get<ApiResponse>(
-          `auth/weather?lat=${latitude}&lon=${longitude}`
+          `weather/week?lat=${latitude}&lon=${longitude}`
         );
         setWeather(response.data);
       } catch (err) {

@@ -18,7 +18,7 @@ interface ApiResponse {
 export const WeatherNow = () => {
   const [weather, setWeather] = useState<ApiResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
   const tabs = ["Now", "Today", "Tomorrow"];
   const now = new Date();
   const time = now.toLocaleTimeString("en-GB", {
@@ -28,12 +28,10 @@ export const WeatherNow = () => {
 
   const [activeTab, setActiveTab] = useState("Now");
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    setIsAuthenticated(!!token);
     const fetchWeather = async (latitude: number, longitude: number) => {
       try {
         const response = await axiosInstance.get<ApiResponse>(
-          `auth/weather?lat=${latitude}&lon=${longitude}`
+          `weather/now?lat=${latitude}&lon=${longitude}`
         );
         setWeather(response.data);
       } catch (err) {

@@ -24,22 +24,9 @@ import { ResetPasswordDto } from './dto/reset-password.dto';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { Response } from 'express';
 import { JwtService } from '@nestjs/jwt';
-import { userInfo } from 'os';
-import axios from 'axios';
 import { FileInterceptor } from '@nestjs/platform-express';
 import * as path from 'path';
 import * as fs from 'fs';
-interface WeatherItem {
-  dt_txt: string;
-  main: { temp: number; humidity: number; pressure: number };
-  wind: { speed: number; deg: number };
-  weather: { description: string; icon: string }[];
-}
-
-interface ForecastResponse {
-  city: { name: string };
-  list: WeatherItem[];
-}
 
 @Controller('api/auth')
 export class AuthController {
@@ -145,70 +132,6 @@ export class AuthController {
     const userId = req.user.sub;
 
     return this.authService.addFavoriteCity(userId, body.city);
-  }
-
-  @Get('weather')
-  async getWeather(@Query('lat') lat: string, @Query('lon') lon: string) {
-    try {
-      const apiKey = process.env.WEATHER_API_KEY;
-      const weatherUrl = `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&units=metric&appid=${apiKey}`;
-
-      const { data }: { data: ForecastResponse } = await axios.get(weatherUrl);
-
-      const current = data.list[0];
-      const weatherNow = {
-        city: data.city.name,
-        weatherNow: current.weather[0].description,
-        tempNow: `${Math.round(current.main.temp)}°C`,
-        windNow: `${Math.round(current.wind.speed)} m/s`,
-        pressureNow: `${current.main.pressure} hPa`,
-        humidityNow: `${current.main.humidity}%`,
-        icon: `https://openweathermap.org/img/wn/${current.weather[0].icon}@2x.png`,
-      };
-
-      const hourlyForecast = data.list.slice(0, 9).map((item) => ({
-        time: item.dt_txt.split(' ')[1].slice(0, 5),
-        temp: Math.round(item.main.temp),
-        wind: Math.round(item.wind.speed),
-        windDirection:
-          item.wind.deg > 315 || item.wind.deg <= 45
-            ? 'North'
-            : item.wind.deg > 45 && item.wind.deg <= 135
-              ? 'East'
-              : item.wind.deg > 135 && item.wind.deg <= 225
-                ? 'South'
-                : 'West',
-        precipitation: item.main.humidity > 60 ? 'Yes' : 'No',
-        icon: `https://openweathermap.org/img/wn/${item.weather[0].icon}@2x.png`,
-      }));
-
-      const weekForecast = data.list
-        .filter((item) => item.dt_txt.includes('12:00:00'))
-        .map((item) => ({
-          date: item.dt_txt.split(' ')[0],
-          temp: `${Math.round(item.main.temp)}°C`,
-          wind: `${Math.round(item.wind.speed)} m/s`,
-          description: item.weather[0].description,
-          humidity: `${item.main.humidity}%`,
-          pressure: `${item.main.pressure} hPa`,
-          icon: `https://openweathermap.org/img/wn/${item.weather[0].icon}@2x.png`,
-        }));
-
-      return {
-        city: data.city.name,
-        weatherNow: current.weather[0].icon,
-        tempNow: `${Math.round(current.main.temp)}°C`,
-        windNow: `${Math.round(current.wind.speed)} m/s`,
-        pressureNow: `${current.main.pressure} hPa`,
-        humidityNow: `${current.main.humidity}%`,
-        hourly: hourlyForecast,
-        icon: `https://openweathermap.org/img/wn/${current.weather[0].icon}@2x.png`,
-        weekForecast,
-      };
-    } catch (error) {
-      console.error('Weather request failed:', error);
-      return { error: 'Failed to fetch weather data' };
-    }
   }
 
   @Post('logout')

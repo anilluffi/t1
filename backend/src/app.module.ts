@@ -6,6 +6,7 @@ import { AuthModule } from './auth/auth.module';
 import { MailService } from './mail/mail.service';
 import { ConfigModule } from '@nestjs/config';
 import { FavoriteCityModule } from './favorite-city/favorite-city.module';
+import { WeatherModule } from './weather/weather.module';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
@@ -21,6 +22,7 @@ import { FavoriteCityModule } from './favorite-city/favorite-city.module';
     }),
     AuthModule,
     FavoriteCityModule,
+    WeatherModule,
   ],
   controllers: [AppController],
   providers: [MailService],
