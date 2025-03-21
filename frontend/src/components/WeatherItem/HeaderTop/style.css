@@ -1,0 +1,27 @@
+select {
+  background: none;
+  border: none;
+  outline: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.custom-select option:hover {
+  background: #f0f0f0;
+}
+
+optgroup {
+  border-radius: 15px;
+  font-weight: bold;
+  color: #555;
+  padding: 5px;
+  margin-top: 5px;
+}
+
+.custom-select option:checked {
+  background: #ddd;
+}
+.header-top {
+  display: flex;
+  align-items: center;
+}

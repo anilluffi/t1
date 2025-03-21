@@ -5,7 +5,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
 import { MailService } from './mail/mail.service';
 import { ConfigModule } from '@nestjs/config';
-import { WeatherModule } from './weather/weather.module';
 import { FavoriteCityModule } from './favorite-city/favorite-city.module';
 @Module({
   imports: [
@@ -21,11 +20,9 @@ import { FavoriteCityModule } from './favorite-city/favorite-city.module';
       synchronize: true,
     }),
     AuthModule,
-    WeatherModule,
     FavoriteCityModule,
   ],
   controllers: [AppController],
-  providers: [MailService], 
-  
+  providers: [MailService],
 })
 export class AppModule {}

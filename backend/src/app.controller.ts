@@ -3,19 +3,11 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { JwtAuthGuard } from './auth/jwt-auth.guard';
 
-
 @Controller('api')
 export class AppController {
-  @Get()
-  getHello(): string {
-    return ')';
-  }
-
-  
   @Get('message')
-  @UseGuards(JwtAuthGuard)  // 🔒 
+  @UseGuards(JwtAuthGuard) // 🔒
   getMessage() {
     return { message: '^^' };
   }
-
 }

@@ -1,4 +1,9 @@
-import { Injectable, ConflictException, UnauthorizedException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  ConflictException,
+  UnauthorizedException,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
@@ -9,31 +14,30 @@ import { LoginDto } from './dto/login.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { MailService } from '../mail/mail.service';
 import { ConfigService } from '@nestjs/config';
-import {FavoriteCity} from '../favorite-city/favorite-city.entity';
+import { FavoriteCity } from '../favorite-city/favorite-city.entity';
+import * as path from 'path';
+import * as fs from 'fs';
+import { BadRequestException } from '@nestjs/common';
+
 @Injectable()
 export class AuthService {
   [x: string]: any;
   constructor(
     @InjectRepository(FavoriteCity)
-  private favoriteCityRepository: Repository<FavoriteCity>,
+    private favoriteCityRepository: Repository<FavoriteCity>,
     @InjectRepository(User)
     private usersRepository: Repository<User>,
 
     private mailService: MailService,
     private readonly jwtService: JwtService,
     private configService: ConfigService,
-    
-  ) { }
-
-
-
-  
+  ) {}
 
   private async generateTokens(userId: number, email: string) {
-    const payload = { sub: userId, email };//////////////////////////
+    const payload = { sub: userId, email }; //////////////////////////
     const access_token = this.jwtService.sign(payload, {
       expiresIn: '15m',
-      jwtid: `access-token-${userId}-${Date.now()}`
+      jwtid: `access-token-${userId}-${Date.now()}`,
     });
     const refresh_token = this.jwtService.sign(payload, { expiresIn: '7d' });
 
@@ -44,13 +48,18 @@ export class AuthService {
 
   async register(registerDto: RegisterDto): Promise<{ message: string }> {
     const { email, password } = registerDto;
-    const existingUser = await this.usersRepository.findOne({ where: { email } });
+    const existingUser = await this.usersRepository.findOne({
+      where: { email },
+    });
     if (existingUser) {
       throw new ConflictException('Email already exists');
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = this.usersRepository.create({ ...registerDto, password: hashedPassword });
+    const newUser = this.usersRepository.create({
+      ...registerDto,
+      password: hashedPassword,
+    });
 
     await this.usersRepository.save(newUser);
 
@@ -58,10 +67,10 @@ export class AuthService {
       newUser.email,
       'Welcom!',
       `hi, reg sucsses.`,
-      ''
+      '',
     );
     return { message: 'User registered successfully' };
-  } 
+  }
 
   async login(loginDto: LoginDto) {
     const { email, password } = loginDto;
@@ -74,70 +83,127 @@ export class AuthService {
     return this.generateTokens(user.id, user.email);
   }
 
-
-  
   ////////////////////////////////////////////////////////////////////////////////
   async refreshToken(refreshToken: string) {
     try {
-      const refreshSecret = this.configService.get<string>('JWT_REFRESH_SECRET');
-  
-      //console.log('JWT_REFRESH_SECRET:', refreshSecret); 
-  
-      if (!refreshSecret) throw new Error('Не удалось получить JWT_REFRESH_SECRET');
-  
+      const refreshSecret =
+        this.configService.get<string>('JWT_REFRESH_SECRET');
+
+      //console.log('JWT_REFRESH_SECRET:', refreshSecret);
+
+      if (!refreshSecret)
+        throw new Error('Не удалось получить JWT_REFRESH_SECRET');
+
       const payload = this.jwtService.verify(refreshToken, {
         secret: refreshSecret,
       });
-  
-      const user = await this.usersRepository.findOne({ where: { id: payload.sub } });
+
+      const user = await this.usersRepository.findOne({
+        where: { id: payload.sub },
+      });
       if (!user) throw new UnauthorizedException('User not found');
-  
+
       const newAccessToken = this.jwtService.sign(
         { sub: user.id, email: user.email },
-        { secret: this.configService.get<string>('JWT_SECRET'), expiresIn: '15m' }
+        {
+          secret: this.configService.get<string>('JWT_SECRET'),
+          expiresIn: '15m',
+        },
       );
-  
+
       const newRefreshToken = this.jwtService.sign(
         { sub: user.id },
-        { secret: refreshSecret, expiresIn: '7d' }
-      ); 
-  
-      await this.usersRepository.update(user.id, { refreshToken: newRefreshToken });
-  
+        { secret: refreshSecret, expiresIn: '7d' },
+      );
+
+      await this.usersRepository.update(user.id, {
+        refreshToken: newRefreshToken,
+      });
+
       return { access_token: newAccessToken, refresh_token: newRefreshToken };
     } catch (error) {
-      console.error('Ошибка при обновлении токена:', error.message);
+      console.error('Error refrash token:', error.message);
       throw new UnauthorizedException('Invalid refresh token');
     }
   }
-  
-  
-  ////////////////////////////////////////////////////////////////////////////////////
-  
+
   async getProfile(userId: number) {
-  
     const user = await this.usersRepository.findOne({
       where: { id: userId },
       relations: ['favoriteCities'],
     });
-  
+
     if (!user) throw new NotFoundException(' Пользователь не найден');
-  
+
     //console.log('USER найден:', user);
-    return user; 
-  }
-  
-
- 
-  
-  
-  async setAvatar(userId: number){
-    console.log("set Avatar start in servis");
-    //await this.usersRepository.update(userId, {avatar: pash});
+    return user;
   }
 
+  private getMimeType(base64: string): string {
+    const match = base64.match(/^data:(.+);base64,/);
+    if (match) return match[1];
 
+    // Определяем тип по сигнатуре base64
+    const signatures: { [key: string]: string } = {
+      iVBORw: 'image/png',
+      '/9j/4': 'image/jpeg',
+      UE5H: 'image/png',
+    };
 
+    for (const [signature, mime] of Object.entries(signatures)) {
+      if (base64.startsWith(signature)) return mime;
+    }
+
+    return '';
+  }
+
+  // async getAvatar(userId: number): Promise<string | null> {
+  //   const user = await this.usersRepository.findOne({ where: { id: userId } });
+
+  //   if (!user) return null;
+
+  //   const extension = user.avatar ? path.extname(user.avatar) : '.jpg';
+
+  //   const relativePath = `uploads/avatar_${userId}${extension}`;
+
+  //   if (!user.avatar) {
+  //     await this.usersRepository.update(userId, { avatar: relativePath });
+  //   }
+
+  //   const avatarPath = path.join(__dirname, '..', 'dist', user.avatar);
+
+  //   console.log('Avatar path:', avatarPath);
+
+  //   if (fs.existsSync(avatarPath)) {
+  //     console.log('Avatar path found:', avatarPath);
+  //     return avatarPath;
+  //   }
+
+  //   return null;
+  // }
+
+  async setAvatar(userId: number, file: Express.Multer.File) {
+    const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg'];
+
+    if (!allowedTypes.includes(file.mimetype)) {
+      throw new BadRequestException('! PNG, JPEG, JPG');
+    }
+
+    const extension = path.extname(file.originalname);
+    const uploadsDir = path.join(__dirname, '..', 'uploads');
+
+    if (!fs.existsSync(uploadsDir)) {
+      fs.mkdirSync(uploadsDir, { recursive: true });
+    }
+
+    const filePath = path.join(uploadsDir, `avatar_${userId}${extension}`);
+    fs.writeFileSync(filePath, file.buffer);
+
+    const relativePath = `uploads/avatar_${userId}${extension}`;
+    await this.usersRepository.update(userId, { avatar: relativePath });
+
+    return { avatarPath: relativePath };
+  }
 
   async logout(userId: number) {
     await this.usersRepository.update(userId, { refreshToken: undefined });
@@ -149,10 +215,10 @@ export class AuthService {
     return this.jwtService.sign(payload, { expiresIn: '5m' });
   }
 
-
-
   async resetPasswordMail(dto: ResetPasswordDto) {
-    const user = await this.usersRepository.findOne({ where: { email: dto.email } });
+    const user = await this.usersRepository.findOne({
+      where: { email: dto.email },
+    });
 
     if (!user) {
       throw new NotFoundException('User not found');
@@ -164,14 +230,12 @@ export class AuthService {
 
     const resetUrl = `http://localhost:3001/reset-password?token=${token}`;
 
-
     if (!user) {
       throw new NotFoundException('User not found');
     }
 
     //user.password = await bcrypt.hash(dto.password, 10);
     //await this.usersRepository.save(user);
-
 
     const html = `
       <p>the link is valid for 5 minutes</p>
@@ -185,32 +249,20 @@ export class AuthService {
     return { message: 'Password successfully changed' };
   }
 
-////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////
-async addFavoriteCity(userId: number, city: string) {
-  const user = await this.usersRepository.findOne({ where: { id: userId } });
+  async addFavoriteCity(userId: number, city: string) {
+    const user = await this.usersRepository.findOne({ where: { id: userId } });
 
-  if (!user) {
-    throw new Error('User not found');
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    const newCity = this.favoriteCityRepository.create({
+      user,
+      city_name: city,
+    });
+
+    return this.favoriteCityRepository.save(newCity);
   }
-
-  const newCity = this.favoriteCityRepository.create({
-    user,
-    city_name: city,
-  });
-
-  return this.favoriteCityRepository.save(newCity);
-}
-
-
-  // async getFavoriteCities(userId: number) {
-  //   return this.authService.find({ where: { userId } });
-  // }
-
-
-////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////
-
 
   async resetPasswordWithToken(token: string, newPassword: string) {
     let payload;
@@ -221,7 +273,9 @@ async addFavoriteCity(userId: number, city: string) {
       throw new UnauthorizedException('Invalid or expired token');
     }
 
-    const user = await this.usersRepository.findOne({ where: { id: payload.userId } });
+    const user = await this.usersRepository.findOne({
+      where: { id: payload.userId },
+    });
     if (!user) {
       console.warn('User not found with ID:', payload.userId);
       throw new NotFoundException('User not found');
@@ -231,16 +285,6 @@ async addFavoriteCity(userId: number, city: string) {
       //console.warn('Token mismatch for user:', user.id);
       throw new UnauthorizedException('Invalid token');
     }
-
-
-    //await this.usersRepository.update(user.id, { mailToken: null });
-
-    //const updatedUser = await this.usersRepository.findOne({ where: { id: user.id } });
-
-    // if (!updatedUser) {
-    //   throw new Error(`User witch ID ${user.id} not found befor refresh`);
-    // }
-
 
     user.password = await bcrypt.hash(newPassword, 10);
     user.mailToken = null;
@@ -252,6 +296,4 @@ async addFavoriteCity(userId: number, city: string) {
 
     return { message: 'Password successfully reset' };
   }
-
-
 }
