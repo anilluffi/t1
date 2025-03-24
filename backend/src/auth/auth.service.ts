@@ -249,21 +249,6 @@ export class AuthService {
     return { message: 'Password successfully changed' };
   }
 
-  async addFavoriteCity(userId: number, city: string) {
-    const user = await this.usersRepository.findOne({ where: { id: userId } });
-
-    if (!user) {
-      throw new Error('User not found');
-    }
-
-    const newCity = this.favoriteCityRepository.create({
-      user,
-      city_name: city,
-    });
-
-    return this.favoriteCityRepository.save(newCity);
-  }
-
   async resetPasswordWithToken(token: string, newPassword: string) {
     let payload;
     try {

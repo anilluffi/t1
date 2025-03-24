@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import axiosInstance from "../../../axiosInstance";
 import { AxiosError } from "axios";
-import citiesData from "../../../ua-cities.json";
 import "./style.css";
 
 interface ApiResponse {
@@ -16,8 +15,10 @@ interface ApiResponse {
     icon: string;
   }[];
 }
-
-export const SevenDays = () => {
+type WeatherSevenDaysProps = {
+  coords: { lat: number; lng: number };
+};
+export const SevenDays: React.FC<WeatherSevenDaysProps> = ({ coords }) => {
   const [weather, setWeather] = useState<ApiResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -40,21 +41,18 @@ export const SevenDays = () => {
       }
     };
 
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const { latitude, longitude } = position.coords;
-          fetchWeather(latitude, longitude);
-        },
-        () => {
-          setError("Failed to get location");
-        }
-      );
-    } else {
-      setError("Geolocation is not supported by your browser");
-    }
-  }, []);
-
+    fetchWeather(coords.lat, coords.lng);
+  }, [coords]);
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", { month: "long", day: "numeric" });
+  };
+  const weatherParams = [
+    { label: "Air temperature, °C", key: "temp" },
+    { label: "Wind speed, m/s", key: "wind" },
+    { label: "Humidity", key: "humidity" },
+    { label: "Precipitation", key: "pressure" },
+  ];
   return (
     <div>
       {isAuthenticated ? (
@@ -67,10 +65,11 @@ export const SevenDays = () => {
                   <div className="weather-day-row">
                     {weather.weekForecast?.map((day, index) => (
                       <div key={index} className="weather-day-column">
-                        <h5>{day.date}</h5>
+                        <h5>{formatDate(day.date)}</h5>
                       </div>
                     ))}
-                  </div>{" "}
+                  </div>
+
                   <div className="weather-day-row">
                     {weather.weekForecast?.map((day, index) => (
                       <div key={index} className="weather-day-column">
@@ -82,38 +81,19 @@ export const SevenDays = () => {
                       </div>
                     ))}
                   </div>
-                  <p>Air temperature, °C</p>
-                  <div className="weather-day-row">
-                    {weather.weekForecast?.map((day, index) => (
-                      <div key={index} className="weather-day-column">
-                        <p>{day.temp}</p>
+
+                  {weatherParams.map((param, paramIndex) => (
+                    <div key={paramIndex}>
+                      <p>{param.label}</p>
+                      <div className="weather-day-row">
+                        {weather.weekForecast?.map((day, index) => (
+                          <div key={index} className="weather-day-column">
+                            <p>{day[param.key as keyof typeof day]}</p>
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
-                  <p>Wind speed, m/s</p>
-                  <div className="weather-day-row">
-                    {weather.weekForecast?.map((day, index) => (
-                      <div key={index} className="weather-day-column">
-                        <p>{day.wind}</p>
-                      </div>
-                    ))}
-                  </div>
-                  <p>Humidity</p>
-                  <div className="weather-day-row">
-                    {weather.weekForecast?.map((day, index) => (
-                      <div key={index} className="weather-day-column">
-                        <p>{day.humidity}</p>
-                      </div>
-                    ))}
-                  </div>
-                  <p>Precipitation</p>
-                  <div className="weather-day-row">
-                    {weather.weekForecast?.map((day, index) => (
-                      <div key={index} className="weather-day-column">
-                        <p>{day.pressure}</p>
-                      </div>
-                    ))}
-                  </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             </>

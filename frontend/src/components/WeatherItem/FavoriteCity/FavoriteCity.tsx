@@ -52,17 +52,14 @@ export const FavoriteCity = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await fetch(
-        "http://localhost:3000/api/auth/favorite-city",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ city: selectedCity }),
-        }
-      );
+      const response = await fetch("http://localhost:3000/city/favorite-city", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ city: selectedCity }),
+      });
 
       const data = await response.json();
 

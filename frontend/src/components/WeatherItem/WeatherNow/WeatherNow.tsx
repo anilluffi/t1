@@ -14,8 +14,10 @@ interface ApiResponse {
   description: string;
   icon: string;
 }
-
-export const WeatherNow = () => {
+type WeatherNowProps = {
+  coords: { lat: number; lng: number };
+};
+export const WeatherNow: React.FC<WeatherNowProps> = ({ coords }) => {
   const [weather, setWeather] = useState<ApiResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -30,6 +32,7 @@ export const WeatherNow = () => {
   useEffect(() => {
     const fetchWeather = async (latitude: number, longitude: number) => {
       try {
+        console.log(latitude, " ", longitude);
         const response = await axiosInstance.get<ApiResponse>(
           `weather/now?lat=${latitude}&lon=${longitude}`
         );
@@ -42,20 +45,8 @@ export const WeatherNow = () => {
       }
     };
 
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const { latitude, longitude } = position.coords;
-          fetchWeather(latitude, longitude);
-        },
-        () => {
-          setError("Не удалось получить геопозицию");
-        }
-      );
-    } else {
-      setError("Геолокация не поддерживается вашим браузером");
-    }
-  }, []);
+    fetchWeather(coords.lat, coords.lng);
+  }, [coords]);
 
   return (
     <div>

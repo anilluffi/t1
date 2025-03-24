@@ -1,6 +1,6 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import { Controller, UseGuards, Get, Query } from '@nestjs/common';
 import { WeatherService } from './weather.service';
-
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 @Controller('api/weather')
 export class WeatherController {
   constructor(private readonly weatherService: WeatherService) {}
@@ -26,6 +26,7 @@ export class WeatherController {
   }
 
   @Get('week')
+  @UseGuards(JwtAuthGuard)
   async getWeatherWeek(@Query('lat') lat: string, @Query('lon') lon: string) {
     try {
       return await this.weatherService.getWeatherWeek(lat, lon);

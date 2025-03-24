@@ -8,11 +8,13 @@ interface ApiResponse {
 interface InfoBoxProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
+  coords: { lat: number; lng: number };
 }
 
 export const InfoBox: React.FC<InfoBoxProps> = ({
   activeTab,
   setActiveTab,
+  coords,
 }) => {
   const [weather, setWeather] = useState<ApiResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -32,20 +34,8 @@ export const InfoBox: React.FC<InfoBoxProps> = ({
       }
     };
 
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const { latitude, longitude } = position.coords;
-          fetchWeather(latitude, longitude);
-        },
-        () => {
-          setError("Не удалось получить геопозицию");
-        }
-      );
-    } else {
-      setError("Геолокация не поддерживается вашим браузером");
-    }
-  }, []);
+    fetchWeather(coords.lat, coords.lng);
+  }, [coords]);
   return (
     <div
       className="info-box w-100 rounded-3 text-white"

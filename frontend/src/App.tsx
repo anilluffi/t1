@@ -35,12 +35,12 @@ function App() {
             </>
           ) : (
             <>
-              <Route path="/" element={<HomePage />} />
+              <Route path="/" element={<WeatherPage />} />
             </>
           )}
           <Route path="/profile" element={<ProfilePage />} />
 
-          <Route path="/" element={<LoginPage />} />
+          {/* <Route path="/" element={<LoginPage />} /> */}
 
           <Route element={<PrivateRoute />}>
             <Route path="/Home" element={<HomePage />} />

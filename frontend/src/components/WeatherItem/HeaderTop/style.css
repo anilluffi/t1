@@ -9,7 +9,9 @@ select {
 .custom-select option:hover {
   background: #f0f0f0;
 }
-
+.Logo {
+  margin-right: 15px;
+}
 optgroup {
   border-radius: 15px;
   font-weight: bold;
@@ -22,6 +24,42 @@ optgroup {
   background: #ddd;
 }
 .header-top {
+  margin: 10px;
   display: flex;
-  align-items: center;
+  justify-content: space-between;
+}
+.city-tabs {
+  padding: 5px 5px 5px 15px;
+  width: 400px;
+  cursor: pointer;
+  color: black;
+}
+.tab-link {
+  margin: 10px;
+}
+
+.left-top {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+}
+.input-group {
+  width: 200px;
+  height: 30px;
+}
+.search-div {
+  display: none;
+}
+.search-div-active {
+  padding: 5px;
+  display: block;
+  background-color: rgb(255, 255, 255);
+  position: absolute;
+  top: 35px;
+  z-index: 890;
+  width: 350px;
+  border-radius: 5px;
+}
+.search-item {
+  margin-bottom: 10px;
 }

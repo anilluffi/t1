@@ -18,6 +18,7 @@ import { WeatherModule } from './weather/weather.module';
       password: '1',
       database: 't1_db',
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
+      autoLoadEntities: true,
       synchronize: true,
     }),
     AuthModule,

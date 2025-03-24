@@ -125,15 +125,6 @@ export class AuthController {
     throw new NotFoundException('Аватар не найден');
   }
 
-  @Post('favorite-city')
-  @UseGuards(JwtAuthGuard)
-  async addFavoriteCity(@Req() req, @Body() body: { city: string }) {
-    console.log('userId ', req.user.sub);
-    const userId = req.user.sub;
-
-    return this.authService.addFavoriteCity(userId, body.city);
-  }
-
   @Post('logout')
   async logoutUser(@Body() { userId }: { userId: number }) {
     return await this.authService.logout(userId);

@@ -14,8 +14,10 @@ interface WeatherData {
     icon: string;
   }[];
 }
-
-export const WeatherHourly = () => {
+type WeatherHourlyProps = {
+  coords: { lat: number; lng: number };
+};
+export const WeatherHourly: React.FC<WeatherHourlyProps> = ({ coords }) => {
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -33,20 +35,14 @@ export const WeatherHourly = () => {
       }
     };
 
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          fetchWeather(position.coords.latitude, position.coords.longitude);
-        },
-        () => {
-          setError("Не удалось получить геопозицию");
-        }
-      );
-    } else {
-      setError("Геолокация не поддерживается вашим браузером");
-    }
-  }, []);
-
+    fetchWeather(coords.lat, coords.lng);
+  }, [coords]);
+  const hourlyParams = [
+    { label: "Air temperature, °C", key: "temp", unit: "°C" },
+    { label: "Wind speed, m/s", key: "wind", unit: " m/s" },
+    { label: "Wind direction", key: "windDirection", unit: "" },
+    { label: "Precipitation", key: "precipitation", unit: "" },
+  ];
   return (
     <div>
       {weather ? (
@@ -61,6 +57,7 @@ export const WeatherHourly = () => {
                   </div>
                 ))}
               </div>
+
               <div className="weather-row">
                 {weather.hourly.map((hour, index) => (
                   <div key={index} className="weather-col">
@@ -68,42 +65,20 @@ export const WeatherHourly = () => {
                   </div>
                 ))}
               </div>
-              <p>Air temperature, °C</p>
 
-              <div className="weather-row">
-                {weather.hourly.map((hour, index) => (
-                  <div key={index} className="weather-col">
-                    {hour.temp}°C
+              {hourlyParams.map((param, paramIndex) => (
+                <div key={paramIndex}>
+                  <p>{param.label}</p>
+                  <div className="weather-row">
+                    {weather.hourly.map((hour, index) => (
+                      <div key={index} className="weather-col">
+                        {hour[param.key as keyof typeof hour]}
+                        {param.unit}
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-
-              <p>Wind speed, m/s</p>
-              <div className="weather-row">
-                {weather.hourly.map((hour, index) => (
-                  <div key={index} className="weather-col">
-                    {hour.wind} m/s
-                  </div>
-                ))}
-              </div>
-
-              <p>Wind direction</p>
-              <div className="weather-row">
-                {weather.hourly.map((hour, index) => (
-                  <div key={index} className="weather-col">
-                    {hour.windDirection}
-                  </div>
-                ))}
-              </div>
-
-              <p>Precipitation</p>
-              <div className="weather-row">
-                {weather.hourly.map((hour, index) => (
-                  <div key={index} className="weather-col">
-                    {hour.precipitation}
-                  </div>
-                ))}
-              </div>
+                </div>
+              ))}
             </div>
           </div>
 
