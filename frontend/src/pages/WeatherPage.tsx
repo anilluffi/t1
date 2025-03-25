@@ -3,7 +3,6 @@ import { WeatherHourly } from "../components/WeatherItem/WeatherHourly/WeatherHo
 import { SevenDays } from "../components/WeatherItem/SevenDays/SevenDays";
 import { FavoriteCity } from "../components/WeatherItem/FavoriteCity/FavoriteCity";
 import HeaderTop from "../components/WeatherItem/HeaderTop/HeaderTop";
-
 import { WeatherNow } from "../components/WeatherItem/WeatherNow/WeatherNow";
 import { InfoBox } from "../components/WeatherItem/InfoBox/InfoBox";
 

@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from "react";
-import citiesData from "../../../ua-cities.json";
+import axiosInstance from "../../../axiosInstance";
 import "./style.css";
 
-type City = {
-  name: string;
-  lat: number;
-  lng: number;
-};
-
+interface ApiResponse {
+  city: string;
+}
+interface SearchResponse {
+  city: string[];
+}
 type HeaderTopProps = {
   onCitySelect: (lat: number, lng: number, cityName: string) => void;
   cityTab: string;
@@ -27,53 +27,24 @@ const HeaderTop: React.FC<HeaderTopProps> = ({
     lng: number;
   } | null>(null);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const countryData = citiesData[0];
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+
   const tabs = ["city1", "c2", "c3"];
-  const [filteredCities, setFilteredCities] = useState<City[]>([]);
+
   const toggleSearch = () => {
     setIsSearchOpen(!isSearchOpen);
   };
+
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const { latitude, longitude } = position.coords;
-        const foundCity = findCityByCoords(latitude, longitude);
-
         setGeoCoords({ lat: latitude, lng: longitude });
 
-        if (foundCity) {
-          setGeoCity(foundCity.name);
-          onCitySelect(latitude, longitude, foundCity.name);
-        } else {
-          setGeoCity("Неизвестный город");
-        }
+        fetchCityByGeo(latitude, longitude);
       },
-      () => setGeoCity("Геопозиция недоступна")
+      () => setGeoCity("Geolocation unavailable")
     );
-
-    if (cityInput.trim() === "") {
-      setFilteredCities([]);
-      return;
-    }
-
-    const lowerInput = cityInput.toLowerCase();
-    const matchedCities: City[] = [];
-
-    for (const region of countryData.regions) {
-      const matches = region.cities.filter((city) =>
-        city.name.toLowerCase().includes(lowerInput)
-      );
-
-      matchedCities.push(
-        ...matches.map((city) => ({
-          name: city.name,
-          lat: Number(city.lat),
-          lng: Number(city.lng),
-        }))
-      );
-    }
-
-    setFilteredCities(matchedCities.slice(0, 10));
 
     const savedCity = localStorage.getItem("lastCity");
     if (savedCity) {
@@ -82,64 +53,67 @@ const HeaderTop: React.FC<HeaderTopProps> = ({
       onCitySelect(parsedCity.lat, parsedCity.lng, parsedCity.name);
       setCityTab("c3");
     }
+  }, []);
+
+  const fetchCityByGeo = async (lat: number, lon: number) => {
+    try {
+      const response = await axiosInstance.get<ApiResponse>(
+        `weather/now?lat=${lat}&lon=${lon}`
+      );
+      const data = response.data;
+
+      if (data && data.city) {
+        setGeoCity(data.city);
+        onCitySelect(lat, lon, data.city);
+      } else {
+        setGeoCity("Unknown city");
+      }
+    } catch (error) {
+      console.error("Error fetching city by geolocation:", error);
+      setGeoCity("Geolocation error");
+    }
+  };
+
+  useEffect(() => {
+    if (cityInput.length > 1) {
+      const debounceTimeout = setTimeout(() => {
+        handleSearch();
+      }, 500);
+
+      return () => clearTimeout(debounceTimeout);
+    } else {
+      setSearchResults([]);
+    }
   }, [cityInput]);
 
-  const handleCitySelect = (city: City) => {
-    setCityInput(city.name);
-    onCitySelect(city.lat, city.lng, city.name);
-    localStorage.setItem("lastCity", JSON.stringify(city));
-    setCityName(city.name);
-    setCityTab("c3");
-    setIsSearchOpen(false);
-  };
-
-  const findCityByCoords = (lat: number, lng: number): City | undefined => {
-    for (const region of countryData.regions) {
-      const foundCity = region.cities.find((city) => {
-        const cityLat = Number(city.lat);
-        const cityLng = Number(city.lng);
-        return Math.abs(cityLat - lat) < 0.1 && Math.abs(cityLng - lng) < 0.1;
+  const handleSearch = async () => {
+    try {
+      const response = await axiosInstance.get("weather/search", {
+        params: { name: cityInput },
       });
+      const data = response.data;
 
-      if (foundCity) {
-        return {
-          name: foundCity.name,
-          lat: Number(foundCity.lat),
-          lng: Number(foundCity.lng),
-        };
-      }
-    }
-    return undefined;
-  };
-
-  const handleSearch = () => {
-    let foundCity: City | undefined;
-
-    for (const region of countryData.regions || []) {
-      if (Array.isArray(region.cities)) {
-        const city = region.cities.find(
-          (city) =>
-            city.name && city.name.toLowerCase() === cityInput.toLowerCase()
+      if (data && data.length > 0) {
+        setSearchResults(data);
+        const foundCity = data[0];
+        onCitySelect(foundCity.lat, foundCity.lon, foundCity.name);
+        localStorage.setItem(
+          "lastCity",
+          JSON.stringify({
+            name: foundCity.name,
+            lat: foundCity.lat,
+            lng: foundCity.lon,
+          })
         );
-
-        if (city) {
-          foundCity = {
-            name: city.name,
-            lat: Number(city.lat),
-            lng: Number(city.lng),
-          };
-          break;
-        }
+        setCityName(foundCity.name);
+        setCityTab("c3");
+      } else {
+        setSearchResults([]);
+        //alert("City not found");
       }
-    }
-
-    if (foundCity) {
-      onCitySelect(foundCity.lat, foundCity.lng, foundCity.name);
-      localStorage.setItem("lastCity", JSON.stringify(foundCity));
-      setCityName(foundCity.name);
-      setCityTab("c3");
-    } else {
-      alert("Город не найден");
+    } catch (error) {
+      console.error("Error fetching city:", error);
+      // alert("Error fetching city data");
     }
   };
 
@@ -170,35 +144,39 @@ const HeaderTop: React.FC<HeaderTopProps> = ({
       <div className="left-top">
         <h4 className="Logo">Meteofor</h4>
 
-        <div className="input-group ">
+        <div className="input-group">
           <span onClick={handleSearch} className="input-group-text">
             <i className="bi bi-search"></i>
           </span>
           <input
             onClick={toggleSearch}
             className="form-control"
-            placeholder="search city"
+            placeholder="Search city"
             value={cityInput}
             onChange={(e) => setCityInput(e.target.value)}
             onKeyDown={handleKeyDown}
           />
-          {isSearchOpen && filteredCities.length > 0 && (
-            <div
-              className={`search-div ${
-                isSearchOpen ? "search-div-active" : ""
-              }`}
-            >
-              {filteredCities.map((city, index) => (
-                <div
-                  key={index}
-                  className="search-item"
-                  onClick={() => handleCitySelect(city)}
-                >
-                  {city.name}
-                </div>
-              ))}
-            </div>
-          )}
+          <div
+            className={`search-div ${isSearchOpen ? "search-div-active" : ""}`}
+          >
+            {isSearchOpen && searchResults.length > 0 && (
+              <div className="search-results">
+                {searchResults.map((city, index) => (
+                  <p
+                    className="search-item"
+                    key={index}
+                    onClick={() => {
+                      onCitySelect(city.lat, city.lon, city.name);
+                      setCityInput("");
+                      setIsSearchOpen(false);
+                    }}
+                  >
+                    {city.name}, {city.country}
+                  </p>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="city-tabs">
@@ -218,39 +196,6 @@ const HeaderTop: React.FC<HeaderTopProps> = ({
           ))}
         </div>
       </div>
-
-      <select className="custom-select">
-        <optgroup label="Temperature">
-          <option value="celsius" selected>
-            °C
-          </option>
-          <option value="fahrenheit">°F</option>
-        </optgroup>
-        <optgroup label="Wind Speed">
-          <option value="m/s" selected>
-            m/s
-          </option>
-          <option value="km/h">km/h</option>
-          <option value="miles/h">miles/h</option>
-        </optgroup>
-        <optgroup label="Pressure">
-          <option value="mmhg" selected>
-            mmHg
-          </option>
-          <option value="hpa">hPa</option>
-        </optgroup>
-        <optgroup label="Language">
-          <option value="en" selected>
-            En
-          </option>
-          <option value="ru">Ru</option>
-        </optgroup>
-        <optgroup label="Theme">
-          <option value="light">Light theme</option>
-          <option value="dark">Dark theme</option>
-          <option value="system">System theme</option>
-        </optgroup>
-      </select>
     </div>
   );
 };

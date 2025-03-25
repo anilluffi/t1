@@ -10,7 +10,7 @@ import {
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { FavoriteCitiesService } from './favorite-city.service';
 
-@Controller('city')
+@Controller('api/city')
 export class FavoriteCities {
   constructor(private readonly cityService: FavoriteCitiesService) {}
 
@@ -23,8 +23,9 @@ export class FavoriteCities {
     return this.cityService.addFavoriteCity(userId, body.city);
   }
 
-  // @Get('search')
-  // async searchCity(@Query('name') cityName: string) {
-  //   return this.cityService.searchCity(cityName);
-  // }
+  @Get('search')
+  async searchCity(@Query('name') cityName: string) {
+    console.log('Searching for city:', cityName); // log
+    return this.cityService.searchCity(cityName);
+  }
 }

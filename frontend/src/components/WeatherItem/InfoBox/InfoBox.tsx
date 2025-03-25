@@ -50,7 +50,7 @@ export const InfoBox: React.FC<InfoBoxProps> = ({
     >
       {weather ? (
         <>
-          <p className="m-3 fs-4  ">
+          <p className="m-3 fs-4">
             In {weather.city} {weather.tempNow}
           </p>
         </>

@@ -32,8 +32,8 @@ const LoginPage = () => {
       setSuccessMessage("Login successful!");
 
       setTimeout(() => {
-        navigate("/home");
-        window.location.reload(); //
+        navigate("/weather");
+        window.location.reload();
       }, 1000);
     } catch (err: any) {
       setError(err.message);

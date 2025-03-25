@@ -12,9 +12,16 @@ interface ForecastResponse {
   city: { name: string };
   list: WeatherItem[];
 }
-
+interface CityResponse {
+  name: string;
+  lat: number;
+  lon: number;
+  country: string;
+  state?: string;
+}
 @Injectable()
 export class WeatherService {
+  private citiesData;
   private async fetchWeatherData(
     lat: string,
     lon: string,
@@ -78,5 +85,33 @@ export class WeatherService {
       }));
 
     return { city: data.city.name, weekForecast };
+  }
+
+  async searchCity(cityName: string, countryCode = '', stateCode = '') {
+    const apiKey = process.env.WEATHER_API_KEY;
+    const limit = 5;
+    const url = `http://api.openweathermap.org/geo/1.0/direct?q=${cityName},${stateCode},${countryCode}&limit=${limit}&appid=${apiKey}`;
+
+    try {
+      const { data } = await axios.get<CityResponse[]>(url);
+      // console.log('data.length:', data.length);
+
+      if (data.length === 0) {
+        return { error: 'City not found' };
+      }
+
+      const citiesList = data.map((city) => ({
+        name: city.name,
+        lat: city.lat,
+        lon: city.lon,
+        country: city.country,
+        state: city.state || '',
+      }));
+
+      return citiesList;
+    } catch (error) {
+      console.error('Error fetching city data:', error.message);
+      return { error: 'Failed to fetch city data' };
+    }
   }
 }

@@ -35,4 +35,9 @@ export class WeatherController {
       return { error: 'Failed to fetch weekly weather' };
     }
   }
+  @Get('search')
+  async searchCity(@Query('name') cityName: string) {
+    // console.log('Searching for city:', cityName); // log
+    return this.weatherService.searchCity(cityName);
+  }
 }
