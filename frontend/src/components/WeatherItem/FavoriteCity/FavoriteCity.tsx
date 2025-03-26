@@ -2,17 +2,7 @@ import React, { useState, useEffect } from "react";
 import axiosInstance from "../../../axiosInstance";
 import { AxiosError } from "axios";
 import citiesData from "../../../ua-cities.json";
-interface ApiResponse {
-  city: string;
-  weatherNow: string;
-  weatherAfter3h: string;
-  weatherAfter6h: string;
-  weekForecast?: {
-    date: string;
-    temp: string;
-    description: string;
-  }[];
-}
+import { ApiResponse } from "./type";
 
 export const FavoriteCity = () => {
   const [selectedCity, setSelectedCity] = useState("");

@@ -47,9 +47,9 @@ export const Menu = () => {
             </>
           ) : (
             <>
-              <a href="/Home" className="p-3 text-secondary">
+              {/* <a href="/Home" className="p-3 text-secondary">
                 <i className="bi bi-house fs-3"></i>
-              </a>
+              </a> */}
 
               <a href="/profile" className="p-4 text-secondary">
                 <i className="bi bi-person fs-3"></i>

@@ -1,0 +1,11 @@
+.mini-tab {
+  height: 80px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.icon {
+  width: 50px;
+  padding: 0px;
+}

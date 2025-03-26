@@ -22,10 +22,4 @@ export class FavoriteCities {
 
     return this.cityService.addFavoriteCity(userId, body.city);
   }
-
-  @Get('search')
-  async searchCity(@Query('name') cityName: string) {
-    console.log('Searching for city:', cityName); // log
-    return this.cityService.searchCity(cityName);
-  }
 }

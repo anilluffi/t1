@@ -9,6 +9,7 @@ import { InfoBox } from "../components/WeatherItem/InfoBox/InfoBox";
 const WeatherPage = () => {
   const [activeTab, setActiveTab] = useState("now");
   const [cityTab, setCityTab] = useState("city1");
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [coordinates, setCoordinates] = useState<{ lat: number; lng: number }>({
     lat: 0,
     lng: 0,
@@ -37,14 +38,27 @@ const WeatherPage = () => {
           onCitySelect={handleCitySelect}
           cityTab={cityTab}
           setCityTab={setCityTab}
+          isSearchOpen={isSearchOpen}
+          setIsSearchOpen={setIsSearchOpen}
         />
-        <InfoBox
-          activeTab={activeTab}
-          setActiveTab={setActiveTab}
-          coords={coordinates}
-        />
+        <div
+          onClick={() => {
+            setIsSearchOpen(false);
+          }}
+        >
+          <InfoBox
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+            coords={coordinates}
+          />
+        </div>
 
-        <div className="Main-w">
+        <div
+          className="Main-w"
+          onClick={() => {
+            setIsSearchOpen(false);
+          }}
+        >
           <div className="tab-content">
             {activeTab === "now" && <WeatherNow coords={coordinates} />}
             {activeTab === "hourly" && <WeatherHourly coords={coordinates} />}

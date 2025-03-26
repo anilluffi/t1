@@ -55,15 +55,3 @@
   color: #4b4b4b;
   transform: translateY(-4);
 }
-.icon {
-  width: 50px;
-  padding: 0px;
-}
-.mini-tab {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.text-time {
-  font-size: 1px !important;
-}

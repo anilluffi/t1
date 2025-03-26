@@ -1,0 +1,13 @@
+.mini-tab {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.icon {
+  width: 50px;
+  padding: 0px;
+}
+.text-time {
+  font-size: 1px !important;
+}

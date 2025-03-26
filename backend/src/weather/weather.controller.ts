@@ -40,4 +40,17 @@ export class WeatherController {
     // console.log('Searching for city:', cityName); // log
     return this.weatherService.searchCity(cityName);
   }
+  @Get('DayHourly')
+  async getWeatherDayHourly(
+    @Query('lat') lat: string,
+    @Query('lon') lon: string,
+    @Query('date') date: string,
+  ) {
+    try {
+      return await this.weatherService.getWeatherDayHourly(lat, lon, date);
+    } catch (error) {
+      console.error('Hourly weather request failed:', error);
+      return { error: 'Failed to fetch hourly weather' };
+    }
+  }
 }

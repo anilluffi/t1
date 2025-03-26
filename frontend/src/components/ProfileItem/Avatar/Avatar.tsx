@@ -1,9 +1,6 @@
 import { useState, useEffect } from "react";
 import axiosInstance from "../../../axiosInstance";
-interface ApiResponse {
-  id: number;
-  avatar?: string;
-}
+import { ApiResponse } from "./type";
 export const Avatar = () => {
   const [user, setUser] = useState<ApiResponse | null>(null);
   const [error, setError] = useState<string | null>(null);

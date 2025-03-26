@@ -2,22 +2,8 @@ import { useState, useEffect } from "react";
 import axiosInstance from "../../../axiosInstance";
 import { AxiosError } from "axios";
 import "./style.css";
+import { ApiResponse, WeatherSevenDaysProps } from "./type";
 
-interface ApiResponse {
-  city: string;
-  weekForecast?: {
-    date: string;
-    temp: string;
-    wind: string;
-    description: string;
-    humidity: string;
-    pressure: string;
-    icon: string;
-  }[];
-}
-type WeatherSevenDaysProps = {
-  coords: { lat: number; lng: number };
-};
 export const SevenDays: React.FC<WeatherSevenDaysProps> = ({ coords }) => {
   const [weather, setWeather] = useState<ApiResponse | null>(null);
   const [error, setError] = useState<string | null>(null);

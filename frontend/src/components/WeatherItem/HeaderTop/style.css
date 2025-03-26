@@ -30,14 +30,18 @@ optgroup {
 }
 .city-tabs {
   padding: 5px 5px 5px 15px;
-  width: 400px;
+  width: 550px;
   cursor: pointer;
   color: black;
 }
-.tab-link {
-  margin: 10px;
-}
 
+.tab-link-h {
+  margin: 10px;
+  color: black;
+}
+.active {
+  color: orange;
+}
 .left-top {
   display: flex;
   flex-direction: row;
@@ -54,17 +58,28 @@ optgroup {
   display: block;
   background-color: rgb(255, 255, 255);
   position: absolute;
-  top: 35px;
+  top: 40px;
   z-index: 890;
   width: 350px;
   border-radius: 5px;
 }
 .search-item {
   padding: 5px;
-  margin-bottom: 3px;
 }
 
 .search-item:hover {
   cursor: pointer;
   background-color: skyblue;
+}
+.search-results {
+  border-top-left-radius: 5px;
+  border-bottom-left-radius: 5px;
+  border-radius: 15px;
+  padding: 5px;
+}
+.div-input-group {
+  display: flex;
+  flex-direction: row;
+  width: 200px;
+  height: 30px;
 }

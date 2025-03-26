@@ -1,24 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import axios from 'axios';
+import {
+  WeatherItem,
+  ForecastResponse,
+  CityResponse,
+  WeatherApiResponse,
+} from './weather.type';
 
-interface WeatherItem {
-  dt_txt: string;
-  main: { temp: number; humidity: number; pressure: number };
-  wind: { speed: number; deg: number };
-  weather: { description: string; icon: string }[];
-}
-
-interface ForecastResponse {
-  city: { name: string };
-  list: WeatherItem[];
-}
-interface CityResponse {
-  name: string;
-  lat: number;
-  lon: number;
-  country: string;
-  state?: string;
-}
 @Injectable()
 export class WeatherService {
   private citiesData;
@@ -113,5 +101,34 @@ export class WeatherService {
       console.error('Error fetching city data:', error.message);
       return { error: 'Failed to fetch city data' };
     }
+  }
+
+  async getWeatherDayHourly(lat: string, lon: string, date: string) {
+    const apiKey = process.env.WEATHER_API_KEY;
+    const weatherApiUrl = `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&units=metric&appid=${apiKey}`;
+
+    const { data }: { data: WeatherApiResponse } =
+      await axios.get(weatherApiUrl);
+
+    const filteredHourlyForecast = data.list
+      .filter((item) => item.dt_txt.startsWith(date))
+      .slice(0, 9)
+      .map((item) => ({
+        time: item.dt_txt.split(' ')[1].slice(0, 5),
+        temp: Math.round(item.main.temp),
+        wind: Math.round(item.wind.speed),
+        windDirection:
+          item.wind.deg > 315 || item.wind.deg <= 45
+            ? 'North'
+            : item.wind.deg > 45 && item.wind.deg <= 135
+              ? 'East'
+              : item.wind.deg > 135 && item.wind.deg <= 225
+                ? 'South'
+                : 'West',
+        precipitation: item.main.humidity > 60 ? 'Yes' : 'No',
+        icon: `https://openweathermap.org/img/wn/${item.weather[0].icon}@2x.png`,
+      }));
+
+    return { city: data.city.name, hourly: filteredHourlyForecast };
   }
 }

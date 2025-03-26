@@ -33,25 +33,4 @@ export class FavoriteCitiesService {
 
     return this.favoriteCityRepository.save(newCity);
   }
-
-  searchCity(cityName: string) {
-    cityName = cityName.toLowerCase();
-
-    for (const country of this.citiesData) {
-      for (const region of country.regions) {
-        const city = region.cities.find(
-          (c) => c.name.toLowerCase() === cityName,
-        );
-        if (city) {
-          return {
-            country: country.name,
-            region: region.name,
-            ...city,
-          };
-        }
-      }
-    }
-
-    return { error: 'City not found' };
-  }
 }

@@ -1,16 +1,6 @@
 import { useState, useEffect } from "react";
 import axiosInstance from "../../../axiosInstance";
-interface FavoriteCity {
-  id: number;
-  city_name: string;
-}
-
-interface ApiResponse {
-  id: number;
-  email: string;
-  username?: string;
-  favoriteCities: FavoriteCity[];
-}
+import { ApiResponse, FavoriteCity } from "./type";
 
 export const Info = () => {
   const [user, setUser] = useState<ApiResponse | null>(null);
